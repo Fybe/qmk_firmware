@@ -89,11 +89,19 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 };
 /* clang-format on */
 
-layer_state_t layer_state_set_user(layer_state_t state) {
-    return state;
-}
+float qwerty_song[][2] = SONG(QWERTY_SOUND);
+float canary_song[][2] = SONG(DVORAK_SOUND);
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
+    switch (keycode) {
+        case QWERTY:
+            PLAY_SONG(qwerty_song);
+            break;
+        case CANARY:
+            PLAY_SONG(canary_song);
+            break;
+    }
+
     return true;
 }
 

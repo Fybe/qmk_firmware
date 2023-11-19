@@ -16,10 +16,10 @@
 
 #pragma once
 
-#define TAPPING_TERM 140
+#define TAPPING_TERM 150
 #define TAPPING_TERM_PER_KEY
 
-#define AUTO_SHIFT_TIMEOUT 140
+#define AUTO_SHIFT_TIMEOUT 125
 #define NO_AUTO_SHIFT_ALPHA
 
 
