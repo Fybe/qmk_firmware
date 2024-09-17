@@ -35,13 +35,15 @@ enum custom_keycodes {
     KC_DIGRAPH_GH,
     KC_DIGRAPH_PH,
 
+    KC_PRNS,
+    KC_BRCS,
+
     KC_SMART_NUM,
 };
 
 enum tap_dance {
-    TD_SMART_SFT,
+    TD_SMART_SFT = 0,
     TD_NUM_NAV,
-    TD_TEST,
 };
 
 
@@ -86,34 +88,33 @@ enum tap_dance {
              +---+---+   |           |   +---+---+
                      +---+           +---+
 
-
  */
 
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     [_HANDSDOWN] = LAYOUT(
-        KC_X, KC_W, KC_M, KC_G, KC_J,                        KC_HASH, KC_DOT, KC_SLSH, KC_UNDS, KC_QUOT,
+        KC_X,     KC_W,     KC_M,     KC_G,     KC_J,        KC_HASH, KC_DOT,   KC_SLSH,  KC_UNDS,  KC_QUOT,
         KC_GUI_S, KC_ALT_C, KC_SFT_N, KC_CTL_T, KC_K,        KC_COMM, KC_CTL_A, KC_SFT_E, KC_ALT_I, KC_GUI_H,
-        KC_B, KC_P, KC_L, KC_D, KC_V,                        KC_MINS, KC_U, KC_O, KC_Y, KC_F,
+        KC_B,     KC_P,     KC_L,     KC_D,     KC_V,        KC_MINS, KC_U,     KC_O,     KC_Y,     KC_F,
                       TD(TD_NUM_NAV), KC_R, KC_ENT, TD(TD_SMART_SFT), KC_SPC, QK_LEAD
     ),
     [_NUM] = LAYOUT(
         _______, _______, _______, _______, _______,         _______, _______, _______, _______, _______,
            KC_7,    KC_5,    KC_3,    KC_1, _______,         _______,    KC_0,    KC_2,    KC_4,    KC_6,
         _______, _______, _______,    KC_9, _______,         _______,    KC_8, _______, _______, _______,
-                               _______, _______, _______, _______, _______, _______
+                             TG(_NUM), _______, _______, _______, _______, _______
     ),
     [_NAV] = LAYOUT(
-        XXXXXXX, KC_VOLD, KC_MUTE, KC_VOLU, XXXXXXX,         XXXXXXX, KC_PGDN, KC_PGUP, XXXXXXX, KC_DEL,
-        KC_LGUI, KC_MPRV, KC_MPLY, KC_MNXT, XXXXXXX,         KC_LEFT, KC_DOWN, KC_UP, KC_RGHT, KC_END,
+        XXXXXXX, KC_VOLD, KC_MUTE, KC_VOLU, XXXXXXX,         KC_HOME, KC_PGDN, KC_PGUP,  KC_END, KC_DEL,
+        KC_LGUI, KC_MPRV, KC_MPLY, KC_MNXT, XXXXXXX,         KC_LEFT, KC_DOWN,   KC_UP, KC_RGHT, KC_END,
         XXXXXXX, XXXXXXX, KC_MSTP, XXXXXXX, XXXXXXX,         XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,
-                               _______, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX
+                               XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, _______
     ),
     [_FN] = LAYOUT(
          KC_F11,   KC_F9,   KC_F7,   KC_F5,   KC_F3,           KC_F4,   KC_F6,   KC_F8,  KC_F10,  KC_F12,
-        _______, _______, _______, _______,   KC_F1,           KC_F2, _______, _______, _______, _______,
-        _______, _______, _______, _______, _______,         _______, _______, _______, _______, _______,
-                               _______, _______, _______, _______, _______, _______
+        XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,   KC_F1,           KC_F2, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,
+        XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,         XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,
+                               XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, _______
     ),
 };
 
@@ -135,6 +136,7 @@ void tap_dance_hold_tap_on_each_tap(tap_dance_state_t *state, void *user_data) {
         hold_tap_user_fn(tap_tap, true);
     }
 }
+
 void tap_dance_hold_tap_finished(tap_dance_state_t *state, void *user_data) {
     hold_tap_user_fn_t hold_tap_user_fn = (hold_tap_user_fn_t) user_data;
 
@@ -147,6 +149,7 @@ void tap_dance_hold_tap_finished(tap_dance_state_t *state, void *user_data) {
         }
     }
 }
+
 void tap_dance_hold_tap_release(tap_dance_state_t *state, void *user_data) {
     hold_tap_user_fn_t hold_tap_user_fn = (hold_tap_user_fn_t) user_data;
 
@@ -159,33 +162,35 @@ void tap_dance_hold_tap_release(tap_dance_state_t *state, void *user_data) {
 }
 
 void hold_tap_smart_shift(hold_tap_action_t hold_tap_action, bool pressed) {
-    switch(hold_tap_action) {
-    case tap:
-        if (pressed) add_oneshot_mods(MOD_LSFT);
-        break;
-    case tap_tap:
-        if (pressed) caps_word_toggle();
-        break;
-    case hold:
-        if (pressed) register_code(KC_LSFT);
-        else unregister_code(KC_LSFT);
-        break;
+    if (pressed) {
+        switch(hold_tap_action) {
+        case tap: add_oneshot_mods(MOD_LSFT); break;
+        case tap_tap: caps_word_toggle(); break;
+        case hold: add_mods(MOD_LSFT); break;
+        }
+    } else {
+        switch(hold_tap_action) {
+        case tap: break;
+        case tap_tap: break;
+        case hold: del_mods(MOD_LSFT); break;
+        default: break;
+        }
     }
 }
 
 void hold_tap_num_nav(hold_tap_action_t hold_tap_action, bool pressed) {
-    switch(hold_tap_action) {
-    case tap:
-        if (pressed) layer_on(_NUM);
-        break;
-    case tap_tap:
-        if (pressed) layer_on(_FN);
-        else layer_off(_FN);
-        break;
-    case hold:
-        if (pressed) layer_on(_NAV);
-        else layer_off(_NAV);
-        break;
+    if (pressed) {
+        switch(hold_tap_action) {
+        case tap: layer_on(_NUM); break;
+        case tap_tap: layer_on(_FN); break;
+        case hold: layer_on(_NAV); break;
+        }
+    } else {
+        switch(hold_tap_action) {
+        case tap: break;
+        case tap_tap: layer_off(_FN); break;
+        case hold: layer_off(_NAV); break;
+        }
     }
 }
 
@@ -198,7 +203,7 @@ enum combos {
     /* left hand
      */
 
-    COMBO_ESC,
+    COMBO_ESC = 0,
     /* COMBO_DIGRAPH_GH, */
 
     COMBO_Z,
@@ -244,6 +249,9 @@ enum combos {
 
     COMBO_LBRC,
     COMBO_RBRC,
+
+    COMBO_PRNS,
+    COMBO_BRCS,
 };
 
 const uint16_t PROGMEM combo_esc[] = {KC_W, KC_M, COMBO_END};
@@ -287,6 +295,9 @@ const uint16_t PROGMEM combo_pipe[] = {KC_ALT_I, KC_Y, COMBO_END};
 const uint16_t PROGMEM combo_lbrc[] = {KC_U, KC_O, COMBO_END};
 const uint16_t PROGMEM combo_rbrc[] = {KC_O, KC_Y, COMBO_END};
 
+const uint16_t PROGMEM combo_prns[] = {KC_CTL_A, KC_SFT_E, KC_ALT_I, COMBO_END};
+const uint16_t PROGMEM combo_brcs[] = {KC_U, KC_O, KC_Y, COMBO_END};
+
 
 combo_t key_combos[] = {
     [COMBO_ESC] = COMBO(combo_esc, KC_ESC),
@@ -315,6 +326,8 @@ combo_t key_combos[] = {
     [COMBO_PIPE] = COMBO(combo_pipe, KC_PIPE),
     [COMBO_LBRC] = COMBO(combo_lbrc, KC_LBRC),
     [COMBO_RBRC] = COMBO(combo_rbrc, KC_RBRC),
+    [COMBO_PRNS] = COMBO(combo_prns, KC_PRNS),
+    [COMBO_BRCS] = COMBO(combo_brcs, KC_BRCS),
 
     [COMBO_DIGRAPH_TH] = COMBO(combo_digraph_th, KC_DIGRAPH_TH),
     [COMBO_DIGRAPH_CH] = COMBO(combo_digraph_ch, KC_DIGRAPH_CH),
@@ -332,6 +345,10 @@ bool get_combo_must_tap(uint16_t combo_index, combo_t *combo) {
     case COMBO_DIGRAPH_WH:
     case COMBO_DIGRAPH_GH:
     case COMBO_DIGRAPH_PH:
+    case COMBO_TAB:
+    case COMBO_LPRN:
+    case COMBO_RPRN:
+    case COMBO_PRNS:
         return true;
     default:
         return false;
@@ -354,13 +371,6 @@ const key_override_t **key_overrides = (const key_override_t *[]){
     &plus_override,
     NULL,
 };
-
-uint16_t get_quick_tap_term(uint16_t keycode, keyrecord_t *record) {
-    switch (keycode) {
-    default:
-        return QUICK_TAP_TERM;
-    }
-}
 
 bool caps_word_press_user(uint16_t keycode) {
     switch (keycode) {
@@ -407,6 +417,8 @@ void leader_start_user(void) {}
 void leader_end_user(void) {
     if (leader_sequence_four_keys(KC_B, KC_O, KC_O, KC_T)) {
         reset_keyboard();
+    } else if (leader_sequence_five_keys(KC_R, KC_E, KC_S, KC_E, KC_T)) {
+        soft_reset_keyboard();
     }
 }
 
@@ -429,6 +441,8 @@ adaptive_t adaptive_keys[] = {
     {KC_G, KC_M, KC_L},
     {KC_CTL_T, KC_X, KC_Z},
     {KC_UL_A, KC_GUI_H, LGUI_T(KC_U)},
+    {KC_GT, KC_LT, KC_EQL},
+    {KC_LT, KC_GT, KC_EQL},
 };
 #define ADAPTIVE_KEYS_COUNT sizeof(adaptive_keys) / sizeof(*adaptive_keys)
 
@@ -485,12 +499,13 @@ void adaptive_scan(uint16_t time) {
 }
 
 #define TAP_DIGRAPH(kc0, kc1)                                           \
-    if (is_caps_word_on())                                              \
-        add_weak_mods(MOD_LSFT);                                        \
+    if (is_caps_word_on()) add_weak_mods(MOD_MASK_SHIFT);              \
     tap_code(kc0);                                                      \
-    if (!is_caps_word_on())                                             \
-        del_mods(MOD_MASK_SHIFT);                                       \
+    del_mods(MOD_MASK_SHIFT);                                           \
     tap_code(kc1)
+
+
+uint16_t last_keypress = 0;
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     if (layer_state_is(_NUM) && !num_layer_press_user(keycode)) {
@@ -506,6 +521,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 
     uint16_t mods = get_mods();
     uint16_t weak_mods = get_weak_mods();
+    uint16_t oneshot_mods = get_oneshot_mods();
 
     switch (keycode) {
     case KC_RARR:
@@ -540,6 +556,17 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 
     case KC_DIGRAPH_PH:
         TAP_DIGRAPH(KC_P, KC_H);
+        break;
+
+    case KC_PRNS:
+        tap_code16(KC_LPRN);
+        tap_code16(KC_RPRN);
+        break;
+
+    case KC_BRCS:
+        tap_code16(KC_LBRC);
+        set_oneshot_mods(oneshot_mods);
+        tap_code16(KC_RBRC);
         break;
     }
     set_weak_mods(weak_mods);
