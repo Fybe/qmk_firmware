@@ -20,9 +20,8 @@
 
 enum layers {
     _HANDSDOWN = 0,
+    _NUM_FN,
     _NAV,
-    _NUM,
-    _FN,
 };
 
 enum custom_keycodes {
@@ -58,10 +57,10 @@ enum tap_dance {
 #define KC_ALT_I LALT_T(KC_I)
 #define KC_GUI_H LGUI_T(KC_H)
 
-#define KC_UL_A RALT(KC_QUOT)
-#define KC_UL_O RALT(KC_SCLN)
-#define KC_UL_U RALT(KC_LBRC)
-#define KC_SZ RALT(KC_MINS)
+#define KC_UL_A RALT(KC_Q)
+#define KC_UL_O RALT(KC_P)
+#define KC_UL_U RALT(KC_Y)
+#define KC_SZ RALT(KC_S)
 
 /*
 
@@ -91,31 +90,24 @@ enum tap_dance {
 
  */
 
-
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     [_HANDSDOWN] = LAYOUT(
         KC_X,     KC_W,     KC_M,     KC_G,     KC_J,        KC_HASH, KC_DOT,   KC_SLSH,  KC_UNDS,  KC_QUOT,
         KC_GUI_S, KC_ALT_C, KC_SFT_N, KC_CTL_T, KC_K,        KC_COMM, KC_CTL_A, KC_SFT_E, KC_ALT_I, KC_GUI_H,
         KC_B,     KC_P,     KC_L,     KC_D,     KC_V,        KC_MINS, KC_U,     KC_O,     KC_Y,     KC_F,
-                      TD(TD_NUM_NAV), KC_R, KC_ENT, TD(TD_SMART_SFT), KC_SPC, QK_LEAD
+                             TT(_NUM_FN), KC_R, KC_ENT, TD(TD_SMART_SFT), KC_SPC, TT(_NAV)
     ),
-    [_NUM] = LAYOUT(
-        _______, _______, _______, _______, _______,         _______, _______, _______, _______, _______,
-           KC_7,    KC_5,    KC_3,    KC_1, _______,         _______,    KC_0,    KC_2,    KC_4,    KC_6,
-        _______, _______, _______,    KC_9, _______,         _______,    KC_8, _______, _______, _______,
-                             TG(_NUM), _______, _______, _______, _______, _______
+    [_NUM_FN] = LAYOUT(
+        QK_BOOT,   KC_F9,   KC_F8,   KC_F7,  KC_F12,         _______,    KC_7,    KC_8,    KC_9, _______,
+        ______,   KC_F6,   KC_F5,   KC_F4,  KC_F11,         _______,    KC_4,    KC_5,    KC_6, KC_DOT,
+        _______,   KC_F3,   KC_F2,   KC_F1,  KC_F10,         _______,    KC_1,    KC_2,    KC_3, _______,
+                             _______, _______, _______, _______, KC_0, _______
     ),
     [_NAV] = LAYOUT(
-        XXXXXXX, KC_VOLD, KC_MUTE, KC_VOLU, XXXXXXX,         KC_HOME, KC_PGDN, KC_PGUP,  KC_END, KC_DEL,
-        KC_LGUI, KC_MPRV, KC_MPLY, KC_MNXT, XXXXXXX,         KC_LEFT, KC_DOWN,   KC_UP, KC_RGHT, KC_END,
-        XXXXXXX, XXXXXXX, KC_MSTP, XXXXXXX, XXXXXXX,         XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,
-                               XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, _______
-    ),
-    [_FN] = LAYOUT(
-         KC_F11,   KC_F9,   KC_F7,   KC_F5,   KC_F3,           KC_F4,   KC_F6,   KC_F8,  KC_F10,  KC_F12,
-        XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,   KC_F1,           KC_F2, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,
-        XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,         XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,
-                               XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, _______
+        XXXXXXX,         KC_VOLD,         KC_MUTE,         KC_VOLU, XXXXXXX,       KC_HOME, KC_PGDN, KC_PGUP,  KC_END, XXXXXXX,
+        KC_LGUI, LALT_T(KC_MPRV), LSFT_T(KC_MPLY), LCTL_T(KC_MNXT), XXXXXXX,       KC_LEFT, KC_DOWN,   KC_UP, KC_RGHT, XXXXXXX,
+        XXXXXXX,         XXXXXXX,         KC_MSTP,         XXXXXXX, XXXXXXX,       XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,
+                             _______, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, _______
     ),
 };
 
@@ -179,25 +171,8 @@ void hold_tap_smart_shift(hold_tap_action_t hold_tap_action, bool pressed) {
     }
 }
 
-void hold_tap_num_nav(hold_tap_action_t hold_tap_action, bool pressed) {
-    if (pressed) {
-        switch(hold_tap_action) {
-        case tap: layer_on(_NUM); break;
-        case tap_tap: layer_on(_FN); break;
-        case hold: layer_on(_NAV); break;
-        }
-    } else {
-        switch(hold_tap_action) {
-        case tap: break;
-        case tap_tap: layer_off(_FN); break;
-        case hold: layer_off(_NAV); break;
-        }
-    }
-}
-
 tap_dance_action_t tap_dance_actions[] = {
     [TD_SMART_SFT] = ACTION_TAP_HOLD_TAP(hold_tap_smart_shift),
-    [TD_NUM_NAV]   = ACTION_TAP_HOLD_TAP(hold_tap_num_nav),
 };
 
 enum combos {
@@ -241,14 +216,6 @@ enum combos {
     COMBO_DIGRAPH_WH,
 };
 
-  /* +---+---+---+---+---+                 +---+---+---+---+---+ */
-  /* |   |  ESC  gh  |   |                 |   |  BSP DEL  |   | */
-  /* + Z + Q + $ + ~ + ` +                 +---+ ä + * + & +---+ */
-  /* |   |  TAB  th  :   |                 |   ;   (   )   |   | */
-  /* + ß + > + = + < + % +                 +---+ ü + ö + | +---+ */
-  /* |   |   }   {   |   |                 |   |   [   ]   |   | */
-  /* +---+---+---+---+---+                 +---+---+---+---+---+ */
-
 
 const uint16_t PROGMEM combo_ampr[] = {KC_UNDS, KC_ALT_I, COMBO_END};
 const uint16_t PROGMEM combo_astr[] = {KC_SLSH, KC_SFT_E, COMBO_END};
@@ -261,11 +228,11 @@ const uint16_t PROGMEM combo_dlr[] = {KC_M, KC_SFT_N, COMBO_END};
 const uint16_t PROGMEM combo_eql[] = {KC_SFT_N, KC_L, COMBO_END};
 const uint16_t PROGMEM combo_esc[] = {KC_W, KC_M, COMBO_END};
 const uint16_t PROGMEM combo_grv[] = {KC_J, KC_K, COMBO_END};
-const uint16_t PROGMEM combo_gt[] = {KC_ALT_C, KC_P, COMBO_END};
+const uint16_t PROGMEM combo_gt[] = {KC_CTL_T, KC_D, COMBO_END};
 const uint16_t PROGMEM combo_lbrc[] = {KC_U, KC_O, COMBO_END};
 const uint16_t PROGMEM combo_lcbr[] = {KC_D, KC_L, COMBO_END};
 const uint16_t PROGMEM combo_lprn[] = {KC_CTL_A, KC_SFT_E, COMBO_END};
-const uint16_t PROGMEM combo_lt[] = {KC_CTL_T, KC_D, COMBO_END};
+const uint16_t PROGMEM combo_lt[] = {KC_ALT_C, KC_P, COMBO_END};
 const uint16_t PROGMEM combo_perc[] = {KC_K, KC_V, COMBO_END};
 const uint16_t PROGMEM combo_pipe[] = {KC_ALT_I, KC_Y, COMBO_END};
 const uint16_t PROGMEM combo_prns[] = {KC_CTL_A, KC_SFT_E, KC_ALT_I, COMBO_END};
@@ -342,10 +309,30 @@ bool get_combo_must_tap(uint16_t combo_index, combo_t *combo) {
     case COMBO_LPRN:
     case COMBO_RPRN:
     case COMBO_PRNS:
+    case COMBO_LCBR:
+    case COMBO_RCBR:
+    case COMBO_CBRS:
         return true;
     default:
         return false;
     }
+}
+
+uint16_t get_combo_term(uint16_t combo_index, combo_t *combo) {
+  switch(combo_index) {
+  case COMBO_Z:
+  case COMBO_Q:
+  case COMBO_SCLN:
+  case COMBO_COLN:
+  case COMBO_DIGRAPH_SH:
+  case COMBO_UL_A:
+  case COMBO_UL_O:
+  case COMBO_UL_U:
+  case COMBO_SZ:
+    return COMBO_TERM + 15;
+  default:
+    return COMBO_TERM;
+  }
 }
 
 const key_override_t at_override = ko_make_basic(MOD_MASK_SHIFT, KC_HASH, KC_AT);
@@ -387,33 +374,6 @@ bool caps_word_press_user(uint16_t keycode) {
     }
 }
 
-bool num_layer_press_user(uint16_t keycode) {
-    switch (keycode) {
-    case KC_1 ... KC_0:
-    case KC_MINS:
-    case KC_ASTR:
-    case KC_PLUS:
-    case KC_SLSH:
-    case KC_DOT:
-    case KC_COMM:
-    case KC_BSPC:
-    case KC_DEL:
-    case TG(_NUM):
-        return true;
-    default:
-        return false;
-    }
-}
-
-void leader_start_user(void) {}
-void leader_end_user(void) {
-    if (leader_sequence_four_keys(KC_B, KC_O, KC_O, KC_T)) {
-        reset_keyboard();
-    } else if (leader_sequence_five_keys(KC_R, KC_E, KC_S, KC_E, KC_T)) {
-        soft_reset_keyboard();
-    }
-}
-
 /* TODO: Activity state per adaptive key */
 typedef struct {
     uint16_t leader;
@@ -430,9 +390,9 @@ uint16_t adaptive_key_output;
 adaptive_t adaptive_keys[] = {
     {KC_CTL_A, KC_GUI_H, LGUI_T(KC_U)},
     {KC_SFT_E, KC_GUI_H, LGUI_T(KC_O)},
-    {KC_G, KC_M, KC_L},
-    {KC_CTL_T, KC_X, KC_Z},
     {KC_UL_A, KC_GUI_H, LGUI_T(KC_U)},
+    {KC_UL_O, KC_GUI_H, LGUI_T(KC_U)},
+    {KC_G, KC_M, KC_L},
 };
 #define ADAPTIVE_KEYS_COUNT sizeof(adaptive_keys) / sizeof(*adaptive_keys)
 
@@ -498,10 +458,6 @@ void adaptive_scan(uint16_t time) {
 uint16_t last_keypress = 0;
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
-    if (layer_state_is(_NUM) && !num_layer_press_user(keycode)) {
-        layer_off(_NUM);
-    }
-
     if (!adaptive_fire(keycode, record)) return false;
     adaptive_prime(keycode, record);
 
@@ -517,7 +473,6 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     case KC_RARR:
         clear_mods();
         clear_weak_mods();
-
         tap_code(KC_SPC);
         tap_code(KC_MINS);
         tap_code16(KC_RABK);
@@ -549,17 +504,21 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         break;
 
     case KC_PRNS:
+        clear_weak_mods();
         tap_code16(KC_LPRN);
         tap_code16(KC_RPRN);
         break;
 
     case KC_BRCS:
+        clear_weak_mods();
+        set_oneshot_mods(oneshot_mods & ~MOD_MASK_SHIFT);
         tap_code16(KC_LBRC);
-        set_oneshot_mods(oneshot_mods);
+        set_oneshot_mods(oneshot_mods & ~MOD_MASK_SHIFT);
         tap_code16(KC_RBRC);
         break;
 
     case KC_CBRS:
+        clear_weak_mods();
         tap_code16(KC_LCBR);
         set_oneshot_mods(oneshot_mods);
         tap_code16(KC_RCBR);
