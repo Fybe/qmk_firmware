@@ -36,6 +36,8 @@ enum custom_keycodes {
     KC_ADAPTIVE_EO,
     KC_ADAPTIVE_UA,
     KC_ADAPTIVE_OE,
+    KC_ADAPTIVE_GL,
+    KC_ADAPTIVE_LG,
 
     KC_PRNS,
     KC_BRCS,
@@ -64,34 +66,6 @@ enum tap_dance {
 #define KC_UL_O RALT(KC_P)
 #define KC_UL_U RALT(KC_Y)
 #define KC_SZ RALT(KC_S)
-
-/*
-
-  +---+---+---+---+---+                 +---+---+---+---+---+
-  | X | W | M | G | J |                 |# @|. !|/ \|_ ^|' "|
-  +---+---+---+---+---+                 +---+---+---+---+---+
-  | S | C | N | T | K |                 |, ?| A | E | I | H |
-  +---+---+---+---+---+                 +---+---+---+---+---+
-  | B | P | L | D | V |                 |- +| U | O | Y | F |
-  +---+---+---+---+---+                 +---+---+---+---+---+
-  +---+---+---+           +---+---+---+
-  |NUM| R |ENT|           |SFT|SPC| ⋆ |
-  +---+---+   |           |   +---+---+
-  +---+           +---+
-
-  +---+---+---+---+---+                 +---+---+---+---+---+
-  |   |  ESC  gh  |   |                 |   |  BSP DEL  |   |
-  + Z + Q + $ + ~ + ` +                 +---+ ä + * + & +---+
-  |   |  TAB  th  :   |                 |   ;   (   )   |   |
-  + ß + > + = + < + % +                 +---+ ü + ö + | +---+
-  |   |   }   {   |   |                 |   |   [   ]   |   |
-  +---+---+---+---+---+                 +---+---+---+---+---+
-  +---+---+---+           +---+---+---+
-  |NAV|   |   |           |   |   |   |
-  +---+---+   |           |   +---+---+
-  +---+           +---+
-
-*/
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     [_HANDSDOWN] = LAYOUT(
@@ -211,18 +185,19 @@ enum combos {
     COMBO_UL_U,
     COMBO_Z,
 
+    COMBO_ADAPTIVE_AU,
+    COMBO_ADAPTIVE_EO,
+    COMBO_ADAPTIVE_UA,
+    COMBO_ADAPTIVE_OE,
+    COMBO_ADAPTIVE_GL,
+    COMBO_ADAPTIVE_LG,
+
     COMBO_DIGRAPH_CH,
     COMBO_DIGRAPH_GH,
     COMBO_DIGRAPH_PH,
     COMBO_DIGRAPH_SH,
     COMBO_DIGRAPH_TH,
     COMBO_DIGRAPH_WH,
-
-    COMBO_ADAPTIVE_AU,
-    COMBO_ADAPTIVE_EO,
-    COMBO_ADAPTIVE_UA,
-    COMBO_ADAPTIVE_OE,
-
 };
 
 
@@ -269,6 +244,8 @@ const uint16_t PROGMEM combo_adaptive_au[] = {KC_CTL_A, KC_GUI_H, COMBO_END};
 const uint16_t PROGMEM combo_adaptive_eo[] = {KC_SFT_E, KC_GUI_H, COMBO_END};
 const uint16_t PROGMEM combo_adaptive_ua[] = {KC_GUI_H, KC_CTL_A, COMBO_END};
 const uint16_t PROGMEM combo_adaptive_oe[] = {KC_GUI_H, KC_SFT_E, COMBO_END};
+const uint16_t PROGMEM combo_adaptive_gl[] = {KC_G, KC_M, COMBO_END};
+const uint16_t PROGMEM combo_adaptive_lg[] = {KC_M, KC_G, COMBO_END};
 
 
 combo_t key_combos[] = {
@@ -315,6 +292,8 @@ combo_t key_combos[] = {
     [COMBO_ADAPTIVE_EO] = COMBO(combo_adaptive_eo, KC_ADAPTIVE_EO),
     [COMBO_ADAPTIVE_UA] = COMBO(combo_adaptive_ua, KC_ADAPTIVE_UA),
     [COMBO_ADAPTIVE_OE] = COMBO(combo_adaptive_oe, KC_ADAPTIVE_OE),
+    [COMBO_ADAPTIVE_GL] = COMBO(combo_adaptive_gl, KC_ADAPTIVE_GL),
+    [COMBO_ADAPTIVE_LG] = COMBO(combo_adaptive_lg, KC_ADAPTIVE_LG),
 };
 
 bool get_combo_must_tap(uint16_t combo_index, combo_t *combo) {
@@ -329,6 +308,8 @@ bool get_combo_must_tap(uint16_t combo_index, combo_t *combo) {
     case COMBO_ADAPTIVE_EO:
     case COMBO_ADAPTIVE_UA:
     case COMBO_ADAPTIVE_OE:
+    case COMBO_ADAPTIVE_GL:
+    case COMBO_ADAPTIVE_LG:
     case COMBO_TAB:
     case COMBO_LPRN:
     case COMBO_RPRN:
@@ -358,6 +339,8 @@ uint16_t get_combo_term(uint16_t combo_index, combo_t *combo) {
     case COMBO_ADAPTIVE_EO:
     case COMBO_ADAPTIVE_UA:
     case COMBO_ADAPTIVE_OE:
+    case COMBO_ADAPTIVE_GL:
+    case COMBO_ADAPTIVE_LG:
         return ADAPTIVE_TERM;
     default:
         return COMBO_TERM;
@@ -370,6 +353,8 @@ bool get_combo_must_press_in_order(uint16_t combo_index, combo_t *combo) {
     case COMBO_ADAPTIVE_EO:
     case COMBO_ADAPTIVE_UA:
     case COMBO_ADAPTIVE_OE:
+    case COMBO_ADAPTIVE_GL:
+    case COMBO_ADAPTIVE_LG:
         return true;
     default:
         return false;
@@ -405,6 +390,12 @@ bool caps_word_press_user(uint16_t keycode) {
     case KC_DIGRAPH_SH:
     case KC_DIGRAPH_TH:
     case KC_DIGRAPH_WH:
+    case KC_ADAPTIVE_AU:
+    case KC_ADAPTIVE_EO:
+    case KC_ADAPTIVE_UA:
+    case KC_ADAPTIVE_OE:
+    case KC_ADAPTIVE_GL:
+    case KC_ADAPTIVE_LG:
     case TD(TD_SMART_SFT):
         add_weak_mods(MOD_LSFT);
         return true;
@@ -446,45 +437,18 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     uint16_t oneshot_mods = get_oneshot_mods();
 
     switch (keycode) {
-    case KC_DIGRAPH_TH:
-        TAP_DIGRAPH(KC_T, KC_H);
-        break;
-
-    case KC_DIGRAPH_CH:
-        TAP_DIGRAPH(KC_C, KC_H);
-        break;
-
-    case KC_DIGRAPH_SH:
-        TAP_DIGRAPH(KC_S, KC_H);
-        break;
-
-    case KC_DIGRAPH_WH:
-        TAP_DIGRAPH(KC_W, KC_H);
-        break;
-
-    case KC_DIGRAPH_GH:
-        TAP_DIGRAPH(KC_G, KC_H);
-        break;
-
-    case KC_DIGRAPH_PH:
-        TAP_DIGRAPH(KC_P, KC_H);
-        break;
-
-    case KC_ADAPTIVE_AU:
-        TAP_DIGRAPH(KC_A, KC_U);
-        break;
-
-    case KC_ADAPTIVE_EO:
-        TAP_DIGRAPH(KC_E, KC_O);
-        break;
-
-    case KC_ADAPTIVE_UA:
-        TAP_DIGRAPH(KC_U, KC_A);
-        break;
-
-    case KC_ADAPTIVE_OE:
-        TAP_DIGRAPH(KC_O, KC_E);
-        break;
+    case KC_DIGRAPH_TH: TAP_DIGRAPH(KC_T, KC_H); break;
+    case KC_DIGRAPH_CH: TAP_DIGRAPH(KC_C, KC_H); break;
+    case KC_DIGRAPH_SH: TAP_DIGRAPH(KC_S, KC_H); break;
+    case KC_DIGRAPH_WH: TAP_DIGRAPH(KC_W, KC_H); break;
+    case KC_DIGRAPH_GH: TAP_DIGRAPH(KC_G, KC_H); break;
+    case KC_DIGRAPH_PH: TAP_DIGRAPH(KC_P, KC_H); break;
+    case KC_ADAPTIVE_AU: TAP_DIGRAPH(KC_A, KC_U); break;
+    case KC_ADAPTIVE_EO: TAP_DIGRAPH(KC_E, KC_O); break;
+    case KC_ADAPTIVE_UA: TAP_DIGRAPH(KC_U, KC_A); break;
+    case KC_ADAPTIVE_OE: TAP_DIGRAPH(KC_O, KC_E); break;
+    case KC_ADAPTIVE_GL: TAP_DIGRAPH(KC_G, KC_L); break;
+    case KC_ADAPTIVE_LG: TAP_DIGRAPH(KC_L, KC_G); break;
 
     case KC_PRNS:
         clear_weak_mods();
