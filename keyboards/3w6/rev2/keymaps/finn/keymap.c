@@ -32,11 +32,6 @@ enum custom_keycodes {
     KC_DIGRAPH_GH,
     KC_DIGRAPH_PH,
 
-    KC_ADAPTIVE_AU,
-    KC_ADAPTIVE_EO,
-    KC_ADAPTIVE_UA,
-    KC_ADAPTIVE_OE,
-    KC_ADAPTIVE_GL,
     KC_ADAPTIVE_LG,
 
     KC_PRNS,
@@ -67,6 +62,7 @@ enum tap_dance {
 #define KC_UL_U RALT(KC_Y)
 #define KC_SZ RALT(KC_S)
 
+
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     // TODO: Should I swap XSB and WCP columns? And if so, should B
     // and F be swapped as well?
@@ -90,6 +86,64 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
                     _______, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, _______
                     ),
 };
+
+typedef struct {
+    uint16_t leader;
+    uint16_t follow_in;
+    uint16_t follow_out;
+    bool active;
+} adaptive_t;
+
+#define ADAPTIVE(lead, in, out) {.leader = lead, .follow_in = in, .follow_out = out}
+
+adaptive_t adaptives[] = {
+    ADAPTIVE(KC_CTL_A, KC_GUI_H, KC_U),
+    ADAPTIVE(KC_SFT_E, KC_GUI_H, KC_O),
+    ADAPTIVE(KC_U, KC_GUI_H, KC_A),
+    ADAPTIVE(KC_O, KC_GUI_H, KC_E),
+    ADAPTIVE(KC_G, KC_M, KC_L),
+};
+
+uint16_t adaptive_deadline = 0;
+uint16_t adaptive_last_keycode = KC_NO;
+uint16_t adaptive_active_in = KC_NO;
+uint16_t adaptive_active_out = KC_NO;
+
+#define ADAPTIVES_COUNT sizeof(adaptives) / sizeof(*adaptives)
+
+void process_record_adaptive(uint16_t keycode, keyrecord_t *record) {
+    if (record->event.pressed) {
+        for (size_t i = 0; i < ADAPTIVES_COUNT; i++) {
+            adaptive_t *adaptive = &adaptives[i];
+            if (adaptive->leader == adaptive_last_keycode && adaptive->follow_in == keycode) {
+                record->keycode = adaptive->follow_out;
+                adaptive->active = true;
+                adaptive_last_keycode = KC_NO;
+                return;
+            }
+        }
+
+        adaptive_last_keycode = keycode;
+        adaptive_deadline = record->event.time + ADAPTIVE_TERM;
+    } else {
+        for (size_t i = 0; i < ADAPTIVES_COUNT; i++) {
+            adaptive_t *adaptive = &adaptives[i];
+            if (adaptive->active && adaptive->follow_in == keycode) {
+                record->keycode = adaptive->follow_out;
+                adaptive->active = false;
+                return;
+            }
+        }
+    }
+}
+
+
+void matrix_scan_adaptive(void) {
+    if (timer_expired(timer_read(), adaptive_deadline)) {
+        adaptive_last_keycode = KC_NO;
+    }
+}
+
 
 typedef enum {
     tap,
@@ -188,11 +242,6 @@ enum combos {
     COMBO_UL_U,
     COMBO_Z,
 
-    COMBO_ADAPTIVE_AU,
-    COMBO_ADAPTIVE_EO,
-    COMBO_ADAPTIVE_UA,
-    COMBO_ADAPTIVE_OE,
-    COMBO_ADAPTIVE_GL,
     COMBO_ADAPTIVE_LG,
 
     COMBO_DIGRAPH_CH,
@@ -202,6 +251,7 @@ enum combos {
     COMBO_DIGRAPH_TH,
     COMBO_DIGRAPH_WH,
 };
+
 
 
 const uint16_t PROGMEM combo_ampr[] = {KC_UNDS, KC_ALT_I, COMBO_END};
@@ -243,11 +293,6 @@ const uint16_t PROGMEM combo_digraph_sh[] = {KC_GUI_S, KC_CTL_T, COMBO_END};
 const uint16_t PROGMEM combo_digraph_th[] = {KC_SFT_N, KC_CTL_T, COMBO_END};
 const uint16_t PROGMEM combo_digraph_wh[] = {KC_W, KC_G, COMBO_END};
 
-const uint16_t PROGMEM combo_adaptive_au[] = {KC_CTL_A, KC_GUI_H, COMBO_END};
-const uint16_t PROGMEM combo_adaptive_eo[] = {KC_SFT_E, KC_GUI_H, COMBO_END};
-const uint16_t PROGMEM combo_adaptive_ua[] = {KC_U, KC_GUI_H, COMBO_END};
-const uint16_t PROGMEM combo_adaptive_oe[] = {KC_O, KC_GUI_H, COMBO_END};
-const uint16_t PROGMEM combo_adaptive_gl[] = {KC_G, KC_M, COMBO_END};
 const uint16_t PROGMEM combo_adaptive_lg[] = {KC_M, KC_G, COMBO_END};
 
 
@@ -291,11 +336,6 @@ combo_t key_combos[] = {
     [COMBO_DIGRAPH_TH] = COMBO(combo_digraph_th, KC_DIGRAPH_TH),
     [COMBO_DIGRAPH_WH] = COMBO(combo_digraph_wh, KC_DIGRAPH_WH),
 
-    [COMBO_ADAPTIVE_AU] = COMBO(combo_adaptive_au, KC_ADAPTIVE_AU),
-    [COMBO_ADAPTIVE_EO] = COMBO(combo_adaptive_eo, KC_ADAPTIVE_EO),
-    [COMBO_ADAPTIVE_UA] = COMBO(combo_adaptive_ua, KC_ADAPTIVE_UA),
-    [COMBO_ADAPTIVE_OE] = COMBO(combo_adaptive_oe, KC_ADAPTIVE_OE),
-    [COMBO_ADAPTIVE_GL] = COMBO(combo_adaptive_gl, KC_ADAPTIVE_GL),
     [COMBO_ADAPTIVE_LG] = COMBO(combo_adaptive_lg, KC_ADAPTIVE_LG),
 };
 
@@ -307,11 +347,6 @@ bool get_combo_must_tap(uint16_t combo_index, combo_t *combo) {
     case COMBO_DIGRAPH_WH:
     case COMBO_DIGRAPH_GH:
     case COMBO_DIGRAPH_PH:
-    case COMBO_ADAPTIVE_AU:
-    case COMBO_ADAPTIVE_EO:
-    case COMBO_ADAPTIVE_UA:
-    case COMBO_ADAPTIVE_OE:
-    case COMBO_ADAPTIVE_GL:
     case COMBO_ADAPTIVE_LG:
     case COMBO_TAB:
     case COMBO_LPRN:
@@ -332,17 +367,11 @@ uint16_t get_combo_term(uint16_t combo_index, combo_t *combo) {
     case COMBO_Q:
     case COMBO_SCLN:
     case COMBO_COLN:
-    case COMBO_DIGRAPH_SH:
     case COMBO_UL_A:
     case COMBO_UL_O:
     case COMBO_UL_U:
     case COMBO_SZ:
         return COMBO_TERM + 15;
-    case COMBO_ADAPTIVE_AU:
-    case COMBO_ADAPTIVE_EO:
-    case COMBO_ADAPTIVE_UA:
-    case COMBO_ADAPTIVE_OE:
-    case COMBO_ADAPTIVE_GL:
     case COMBO_ADAPTIVE_LG:
         return ADAPTIVE_TERM;
     default:
@@ -352,11 +381,6 @@ uint16_t get_combo_term(uint16_t combo_index, combo_t *combo) {
 
 bool get_combo_must_press_in_order(uint16_t combo_index, combo_t *combo) {
     switch(combo_index) {
-    case COMBO_ADAPTIVE_AU:
-    case COMBO_ADAPTIVE_EO:
-    case COMBO_ADAPTIVE_UA:
-    case COMBO_ADAPTIVE_OE:
-    case COMBO_ADAPTIVE_GL:
     case COMBO_ADAPTIVE_LG:
         return true;
     default:
@@ -393,11 +417,6 @@ bool caps_word_press_user(uint16_t keycode) {
     case KC_DIGRAPH_SH:
     case KC_DIGRAPH_TH:
     case KC_DIGRAPH_WH:
-    case KC_ADAPTIVE_AU:
-    case KC_ADAPTIVE_EO:
-    case KC_ADAPTIVE_UA:
-    case KC_ADAPTIVE_OE:
-    case KC_ADAPTIVE_GL:
     case KC_ADAPTIVE_LG:
     case TD(TD_SMART_SFT):
         add_weak_mods(MOD_LSFT);
@@ -431,6 +450,8 @@ bool get_hold_on_other_key_press(uint16_t keycode, keyrecord_t *record) {
 }
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
+    process_record_adaptive(keycode, record);
+
     if (!record->event.pressed) {
         return true;
     }
@@ -446,11 +467,6 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     case KC_DIGRAPH_WH: TAP_DIGRAPH(KC_W, KC_H); break;
     case KC_DIGRAPH_GH: TAP_DIGRAPH(KC_G, KC_H); break;
     case KC_DIGRAPH_PH: TAP_DIGRAPH(KC_P, KC_H); break;
-    case KC_ADAPTIVE_AU: TAP_DIGRAPH(KC_A, KC_U); break;
-    case KC_ADAPTIVE_EO: TAP_DIGRAPH(KC_E, KC_O); break;
-    case KC_ADAPTIVE_UA: TAP_DIGRAPH(KC_U, KC_A); break;
-    case KC_ADAPTIVE_OE: TAP_DIGRAPH(KC_O, KC_E); break;
-    case KC_ADAPTIVE_GL: TAP_DIGRAPH(KC_G, KC_L); break;
     case KC_ADAPTIVE_LG: TAP_DIGRAPH(KC_L, KC_G); break;
 
     case KC_PRNS:
@@ -477,4 +493,8 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     set_weak_mods(weak_mods);
     set_mods(mods);
     return true;
+}
+
+void matrix_scan_user(void) {
+    matrix_scan_adaptive();
 }
