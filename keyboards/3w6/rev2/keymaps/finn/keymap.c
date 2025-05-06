@@ -68,6 +68,9 @@ enum tap_dance {
 #define KC_SZ RALT(KC_S)
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
+    // TODO: Should I swap XSB and WCP columns? And if so, should B
+    // and F be swapped as well?
+    // https://sites.google.com/alanreiser.com/handsdown/home/hands-down-neu#h.1049guax4j7h
     [_HANDSDOWN] = LAYOUT(
                           KC_X,     KC_W,     KC_M,     KC_G,     KC_J,        KC_HASH, KC_DOT,   KC_SLSH,  KC_UNDS,  KC_QUOT,
                           KC_GUI_S, KC_ALT_C, KC_SFT_N, KC_CTL_T, KC_K,        KC_COMM, KC_CTL_A, KC_SFT_E, KC_ALT_I, KC_GUI_H,
@@ -236,14 +239,14 @@ const uint16_t PROGMEM combo_z[] = {KC_X, KC_GUI_S, COMBO_END};
 const uint16_t PROGMEM combo_digraph_ch[] = {KC_ALT_C, KC_CTL_T, COMBO_END};
 const uint16_t PROGMEM combo_digraph_gh[] = {KC_M, KC_G, COMBO_END};
 const uint16_t PROGMEM combo_digraph_ph[] = {KC_P, KC_D, COMBO_END};
-const uint16_t PROGMEM combo_digraph_sh[] = {KC_GUI_S, KC_SFT_N, COMBO_END};
-const uint16_t PROGMEM combo_digraph_th[] = {KC_CTL_T, KC_SFT_N, COMBO_END};
+const uint16_t PROGMEM combo_digraph_sh[] = {KC_GUI_S, KC_CTL_T, COMBO_END};
+const uint16_t PROGMEM combo_digraph_th[] = {KC_SFT_N, KC_CTL_T, COMBO_END};
 const uint16_t PROGMEM combo_digraph_wh[] = {KC_W, KC_G, COMBO_END};
 
 const uint16_t PROGMEM combo_adaptive_au[] = {KC_CTL_A, KC_GUI_H, COMBO_END};
 const uint16_t PROGMEM combo_adaptive_eo[] = {KC_SFT_E, KC_GUI_H, COMBO_END};
-const uint16_t PROGMEM combo_adaptive_ua[] = {KC_GUI_H, KC_CTL_A, COMBO_END};
-const uint16_t PROGMEM combo_adaptive_oe[] = {KC_GUI_H, KC_SFT_E, COMBO_END};
+const uint16_t PROGMEM combo_adaptive_ua[] = {KC_U, KC_GUI_H, COMBO_END};
+const uint16_t PROGMEM combo_adaptive_oe[] = {KC_O, KC_GUI_H, COMBO_END};
 const uint16_t PROGMEM combo_adaptive_gl[] = {KC_G, KC_M, COMBO_END};
 const uint16_t PROGMEM combo_adaptive_lg[] = {KC_M, KC_G, COMBO_END};
 
