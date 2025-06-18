@@ -13,5 +13,5 @@
 #define COMBO_MUST_TAP_PER_COMBO
 
 #define CHORDAL_HOLD
-#define FLOW_TAP 300
+#define FLOW_TAP 400
 #define PERMISSIVE_HOLD

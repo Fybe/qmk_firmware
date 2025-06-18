@@ -14,7 +14,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "action_util.h"
 #include "caps_word.h"
 #include QMK_KEYBOARD_H
 
@@ -28,38 +27,32 @@ enum custom_keycodes {
     KC_PRNS = SAFE_RANGE,
     KC_BRCS,
     KC_CBRS,
-
-    KC_SMART_NUM,
 };
 
-enum tap_dance {
-    TD_SMART_SFT = 0,
-    TD_NUM_NAV,
-};
+#define MY_A LCTL_T(KC_A)
+#define MY_E LSFT_T(KC_E)
+#define MY_I LALT_T(KC_I)
+#define MY_H LGUI_T(KC_H)
 
-
-#define KC_CTL_A LCTL_T(KC_A)
-#define KC_SFT_E LSFT_T(KC_E)
-#define KC_ALT_I LALT_T(KC_I)
-#define KC_GUI_H LGUI_T(KC_H)
-
-#define KC_GUI_R LGUI_T(KC_R)
-#define KC_ALT_S LALT_T(KC_S)
-#define KC_SFT_N LSFT_T(KC_N)
-#define KC_CTL_D LCTL_T(KC_D)
+#define MY_R LGUI_T(KC_R)
+#define MY_S LALT_T(KC_S)
+#define MY_N LSFT_T(KC_N)
+#define MY_D LCTL_T(KC_D)
 
 #define KC_UL_A RALT(KC_Q)
 #define KC_UL_O RALT(KC_P)
 #define KC_UL_U RALT(KC_Y)
 #define KC_SZ RALT(KC_S)
 
+#define MY_SFT LT(0, KC_NO)
+
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     [_HANDSDOWN_GOLD] = LAYOUT(
                           KC_J,     KC_G,     KC_M,     KC_P,     KC_V,        KC_HASH, KC_DOT,   KC_SLSH,  KC_UNDS,  KC_QUOT,
-                          KC_GUI_R, KC_ALT_S, KC_SFT_N, KC_CTL_D, KC_B,        KC_COMM, KC_CTL_A, KC_SFT_E, KC_ALT_I, KC_GUI_H,
+                          MY_R,     MY_S,     MY_N,     MY_D,     KC_B,        KC_COMM, MY_A,     MY_E,     MY_I,     MY_H,
                           KC_X,     KC_F,     KC_L,     KC_C,     KC_W,        KC_MINS, KC_U,     KC_O,     KC_Y,     KC_K,
-                          TT(_NUM_FN), KC_T, KC_ENT, TD(TD_SMART_SFT), KC_SPC, TT(_NAV)
+                                             TT(_NUM_FN), KC_T, KC_ENT,        MY_SFT, KC_SPC, TT(_NAV)
                           ),
     [_NUM_FN] = LAYOUT(
                        QK_BOOT,   KC_F9,   KC_F8,   KC_F7,  KC_F12,         _______,    KC_7,    KC_8,    KC_9, _______,
@@ -93,10 +86,10 @@ typedef struct {
 #define ADAPTIVE(lead, in, out) {.leader = lead, .follow_in = in, .follow_out = out}
 
 adaptive_t adaptives[] = {
-    ADAPTIVE(KC_CTL_A, KC_GUI_H, KC_U),
-    ADAPTIVE(KC_SFT_E, KC_GUI_H, KC_O),
-    ADAPTIVE(KC_U, KC_GUI_H, KC_A),
-    ADAPTIVE(KC_O, KC_GUI_H, KC_E),
+    ADAPTIVE(MY_A, MY_H, KC_U),
+    ADAPTIVE(MY_E, MY_H, KC_O),
+    ADAPTIVE(KC_U, MY_H, KC_A),
+    ADAPTIVE(KC_O, MY_H, KC_E),
 };
 
 uint16_t adaptive_deadline = 0;
@@ -140,70 +133,6 @@ void matrix_scan_adaptive(void) {
 }
 
 
-typedef enum {
-    tap,
-    tap_tap,
-    hold,
-} hold_tap_action_t;
-
-typedef void (*hold_tap_user_fn_t)(hold_tap_action_t, bool pressed);
-
-#define ACTION_TAP_HOLD_TAP(hold_tap_user_fn)                           \
-    {.fn = { tap_dance_hold_tap_on_each_tap, tap_dance_hold_tap_finished, NULL, tap_dance_hold_tap_release}, .user_data = (void *)((hold_tap_user_fn_t) hold_tap_user_fn) }
-
-void tap_dance_hold_tap_on_each_tap(tap_dance_state_t *state, void *user_data) {
-    hold_tap_user_fn_t hold_tap_user_fn = (hold_tap_user_fn_t) user_data;
-
-    if (state->count == 2) {
-        hold_tap_user_fn(tap_tap, true);
-    }
-}
-
-void tap_dance_hold_tap_finished(tap_dance_state_t *state, void *user_data) {
-    hold_tap_user_fn_t hold_tap_user_fn = (hold_tap_user_fn_t) user_data;
-
-    if (state->count == 1) {
-        if (state->pressed) {
-            hold_tap_user_fn(hold, true);
-        } else {
-            hold_tap_user_fn(tap, true);
-            hold_tap_user_fn(tap, false);
-        }
-    }
-}
-
-void tap_dance_hold_tap_release(tap_dance_state_t *state, void *user_data) {
-    hold_tap_user_fn_t hold_tap_user_fn = (hold_tap_user_fn_t) user_data;
-
-    if (state->count == 2) {
-        hold_tap_user_fn(tap_tap, false);
-        state->finished = true;
-    } else if (state->finished) {
-        hold_tap_user_fn(hold, false);
-    }
-}
-
-void hold_tap_smart_shift(hold_tap_action_t hold_tap_action, bool pressed) {
-    if (pressed) {
-        switch(hold_tap_action) {
-        case tap: set_oneshot_mods(get_oneshot_mods() ^ MOD_LSFT); break;
-        case tap_tap: caps_word_toggle(); break;
-        case hold: add_mods(MOD_LSFT); break;
-        }
-    } else {
-        switch(hold_tap_action) {
-        case tap: break;
-        case tap_tap: break;
-        case hold: del_mods(MOD_LSFT); break;
-        default: break;
-        }
-    }
-}
-
-tap_dance_action_t tap_dance_actions[] = {
-    [TD_SMART_SFT] = ACTION_TAP_HOLD_TAP(hold_tap_smart_shift),
-};
-
 enum combos {
     COMBO_AMPR = 0,
     COMBO_ASTR,
@@ -239,37 +168,37 @@ enum combos {
 };
 
 
-const uint16_t PROGMEM combo_ampr[] = {KC_UNDS, KC_ALT_I, COMBO_END};
-const uint16_t PROGMEM combo_astr[] = {KC_SLSH, KC_SFT_E, COMBO_END};
+const uint16_t PROGMEM combo_ampr[] = {KC_UNDS, MY_I, COMBO_END};
+const uint16_t PROGMEM combo_astr[] = {KC_SLSH, MY_E, COMBO_END};
 const uint16_t PROGMEM combo_brcs[] = {KC_U, KC_O, KC_Y, COMBO_END};
 const uint16_t PROGMEM combo_bspc[] = {KC_DOT, KC_SLSH, COMBO_END};
 const uint16_t PROGMEM combo_cbrs[] = {KC_C, KC_L, KC_F, COMBO_END};
-const uint16_t PROGMEM combo_coln[] = {KC_CTL_D, KC_B, COMBO_END};
+const uint16_t PROGMEM combo_coln[] = {MY_D, KC_B, COMBO_END};
 const uint16_t PROGMEM combo_del[] = {KC_SLSH, KC_UNDS, COMBO_END};
-const uint16_t PROGMEM combo_dlr[] = {KC_M, KC_SFT_N, COMBO_END};
-const uint16_t PROGMEM combo_eql[] = {KC_SFT_N, KC_L, COMBO_END};
+const uint16_t PROGMEM combo_dlr[] = {KC_M, MY_N, COMBO_END};
+const uint16_t PROGMEM combo_eql[] = {MY_N, KC_L, COMBO_END};
 const uint16_t PROGMEM combo_esc[] = {KC_G, KC_M, COMBO_END};
 const uint16_t PROGMEM combo_grv[] = {KC_V, KC_B, COMBO_END};
-const uint16_t PROGMEM combo_gt[] = {KC_CTL_D, KC_C, COMBO_END};
+const uint16_t PROGMEM combo_gt[] = {MY_D, KC_C, COMBO_END};
 const uint16_t PROGMEM combo_lbrc[] = {KC_U, KC_O, COMBO_END};
 const uint16_t PROGMEM combo_lcbr[] = {KC_C, KC_L, COMBO_END};
-const uint16_t PROGMEM combo_lprn[] = {KC_CTL_A, KC_SFT_E, COMBO_END};
-const uint16_t PROGMEM combo_lt[] = {KC_ALT_S, KC_F, COMBO_END};
+const uint16_t PROGMEM combo_lprn[] = {MY_A, MY_E, COMBO_END};
+const uint16_t PROGMEM combo_lt[] = {MY_S, KC_F, COMBO_END};
 const uint16_t PROGMEM combo_perc[] = {KC_B, KC_W, COMBO_END};
-const uint16_t PROGMEM combo_pipe[] = {KC_ALT_I, KC_Y, COMBO_END};
-const uint16_t PROGMEM combo_prns[] = {KC_CTL_A, KC_SFT_E, KC_ALT_I, COMBO_END};
-const uint16_t PROGMEM combo_q[] = {KC_G, KC_ALT_S, COMBO_END};
+const uint16_t PROGMEM combo_pipe[] = {MY_I, KC_Y, COMBO_END};
+const uint16_t PROGMEM combo_prns[] = {MY_A, MY_E, MY_I, COMBO_END};
+const uint16_t PROGMEM combo_q[] = {KC_G, MY_S, COMBO_END};
 const uint16_t PROGMEM combo_rbrc[] = {KC_O, KC_Y, COMBO_END};
 const uint16_t PROGMEM combo_rcbr[] = {KC_L, KC_F, COMBO_END};
-const uint16_t PROGMEM combo_rprn[] = {KC_SFT_E, KC_ALT_I, COMBO_END};
-const uint16_t PROGMEM combo_scln[] = {KC_COMM, KC_CTL_A, COMBO_END};
-const uint16_t PROGMEM combo_sz[] = {KC_GUI_R, KC_J, COMBO_END};
-const uint16_t PROGMEM combo_tab[] = {KC_ALT_S, KC_SFT_N, COMBO_END};
-const uint16_t PROGMEM combo_tild[] = {KC_P, KC_CTL_D, COMBO_END};
-const uint16_t PROGMEM combo_ul_a[] = {KC_DOT, KC_CTL_A, COMBO_END};
-const uint16_t PROGMEM combo_ul_o[] = {KC_SFT_E, KC_O, COMBO_END};
-const uint16_t PROGMEM combo_ul_u[] = {KC_CTL_A, KC_U, COMBO_END};
-const uint16_t PROGMEM combo_z[] = {KC_J, KC_GUI_R, COMBO_END};
+const uint16_t PROGMEM combo_rprn[] = {MY_E, MY_I, COMBO_END};
+const uint16_t PROGMEM combo_scln[] = {KC_COMM, MY_A, COMBO_END};
+const uint16_t PROGMEM combo_sz[] = {MY_R, KC_X, COMBO_END};
+const uint16_t PROGMEM combo_tab[] = {MY_S, MY_N, COMBO_END};
+const uint16_t PROGMEM combo_tild[] = {KC_P, MY_D, COMBO_END};
+const uint16_t PROGMEM combo_ul_a[] = {KC_DOT, MY_A, COMBO_END};
+const uint16_t PROGMEM combo_ul_o[] = {MY_E, KC_O, COMBO_END};
+const uint16_t PROGMEM combo_ul_u[] = {MY_A, KC_U, COMBO_END};
+const uint16_t PROGMEM combo_z[] = {KC_J, MY_R, COMBO_END};
 
 combo_t key_combos[] = {
     [COMBO_AMPR] = COMBO(combo_ampr, KC_AMPR),
@@ -361,7 +290,6 @@ bool caps_word_press_user(uint16_t keycode) {
     case KC_UL_O:
     case KC_UL_U:
     case KC_SZ:
-    case TD(TD_SMART_SFT):
         add_weak_mods(MOD_LSFT);
         return true;
 
@@ -388,6 +316,23 @@ bool get_hold_on_other_key_press(uint16_t keycode, keyrecord_t *record) {
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     process_record_adaptive(keycode, record);
+
+    switch (keycode) {
+    case MY_SFT:
+        if (record->tap.count == 0 && record->event.pressed) {
+            add_mods(MOD_LSFT);
+        }
+        else if (record->tap.count == 0 && !record->event.pressed) {
+            del_mods(MOD_LSFT);
+        }
+        else if (record->tap.count == 1 && record->event.pressed) {
+            set_oneshot_mods(get_oneshot_mods() ^ MOD_LSFT);
+        }
+        else if (record->tap.count == 2 && record->event.pressed) {
+            caps_word_toggle();
+        }
+        return false;
+    }
 
     if (!record->event.pressed) switch (keycode) {
     case KC_PRNS:
