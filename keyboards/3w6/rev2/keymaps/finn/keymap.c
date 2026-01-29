@@ -25,7 +25,7 @@ enum layers {
 };
 
 enum custom_keycodes {
-    KC_BRCS = SAFE_RANGE
+    MY_BEGIN = SAFE_RANGE
 };
 
 #define MY_A LCTL_T(KC_A)
@@ -257,15 +257,5 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         return false;
     }
 
-    if (!record->event.pressed) switch (keycode) {
-        case KC_BRCS:
-            tap_code16(KC_LBRC);
-            tap_code16(KC_RBRC);
-            break;
-        }
     return true;
-}
-
-void matrix_scan_user(void) {
-    /* matrix_scan_adaptive(); */
 }
