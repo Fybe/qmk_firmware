@@ -19,7 +19,6 @@
 
 enum layers {
     _HANDSDOWN_GOLD = 0,
-    _GAMING,
     _NUM_FN,
     _NAV,
 };
@@ -59,7 +58,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
                        _______, _______, _______, _______, KC_0, _______
                        ),
     [_NAV] = LAYOUT(
-                    TG(_GAMING),     KC_VOLD,         KC_MUTE,         KC_VOLU, XXXXXXX,       KC_HOME, KC_PGDN, KC_PGUP,  KC_END, XXXXXXX,
+                    XXXXXXX,     KC_VOLD,         KC_MUTE,         KC_VOLU, XXXXXXX,       KC_HOME, KC_PGDN, KC_PGUP,  KC_END, XXXXXXX,
                     KC_LGUI, LALT_T(KC_MPRV), LSFT_T(KC_MPLY), LCTL_T(KC_MNXT), XXXXXXX,       KC_LEFT, KC_DOWN,   KC_UP, KC_RGHT, XXXXXXX,
                     XXXXXXX,         XXXXXXX,         KC_MSTP,         XXXXXXX, XXXXXXX,       XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,
                                                               _______, XXXXXXX, XXXXXXX,       XXXXXXX, XXXXXXX, _______
@@ -101,9 +100,7 @@ enum combos {
 
 const uint16_t PROGMEM combo_ampr[] = {MY_I, KC_Y, COMBO_END};
 const uint16_t PROGMEM combo_astr[] = {KC_RPRN, MY_E, COMBO_END};
-const uint16_t PROGMEM combo_brcs[] = {KC_U, KC_O, KC_Y, COMBO_END};
 const uint16_t PROGMEM combo_bspc[] = {KC_LPRN, KC_RPRN, COMBO_END};
-const uint16_t PROGMEM combo_cbrs[] = {KC_C, KC_L, KC_F, COMBO_END};
 const uint16_t PROGMEM combo_coln[] = {MY_D, KC_B, COMBO_END};
 const uint16_t PROGMEM combo_del[] = {KC_RPRN, KC_UNDS, COMBO_END};
 const uint16_t PROGMEM combo_dlr[] = {KC_M, MY_N, COMBO_END};
@@ -111,12 +108,9 @@ const uint16_t PROGMEM combo_eql[] = {MY_N, KC_L, COMBO_END};
 const uint16_t PROGMEM combo_esc[] = {KC_G, KC_M, COMBO_END};
 const uint16_t PROGMEM combo_grv[] = {KC_V, KC_B, COMBO_END};
 const uint16_t PROGMEM combo_gt[] = {MY_D, KC_C, COMBO_END};
-const uint16_t PROGMEM combo_lbrc[] = {KC_C, KC_L, COMBO_END};
 const uint16_t PROGMEM combo_lt[] = {MY_S, KC_F, COMBO_END};
 const uint16_t PROGMEM combo_perc[] = {KC_B, KC_W, COMBO_END};
-const uint16_t PROGMEM combo_prns[] = {MY_A, MY_E, MY_I, COMBO_END};
 const uint16_t PROGMEM combo_q[] = {KC_G, MY_S, COMBO_END};
-const uint16_t PROGMEM combo_rbrc[] = {KC_L, KC_F, COMBO_END};
 const uint16_t PROGMEM combo_slsh[] = {KC_SCLN, MY_I, COMBO_END};
 const uint16_t PROGMEM combo_sz[] = {MY_R, KC_X, COMBO_END};
 const uint16_t PROGMEM combo_tab[] = {MY_S, MY_N, COMBO_END};
@@ -238,8 +232,6 @@ bool get_hold_on_other_key_press(uint16_t keycode, keyrecord_t *record) {
 }
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
-    /* process_record_adaptive(keycode, record); */
-
     switch (keycode) {
     case MY_SFT:
         if (record->tap.count == 0 && record->event.pressed) {
